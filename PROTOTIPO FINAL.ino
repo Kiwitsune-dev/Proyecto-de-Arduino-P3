@@ -15,9 +15,16 @@ GRUPO 11A 2024-2
 *   La descripcion de autores y versiones no está definida por JAVADOC. Consulte notas generales
 */
 
+/* NOTAS DE LA VERSION
+* LA PRESENTE CONTIENE LAS MODIFICACIONES DE LA EXCLUSION DEL MOVIMIENTO DE CABECEO
+* VERSION 5.0 FINALIZADA PARA SU REVISION
+* PUBLICADA EN GITHUB EL DIA 19 DE ABRIL DE 2024 PARA ACCESO PUBLICO
+*/
+
 #include <Servo.h>
 
-Servo cabeceo;
+/*Declaracion de motores y asignacion de tags*/
+//Servo cabeceo;
 Servo alabeo;
 Servo guinada;
 
@@ -51,6 +58,7 @@ int redLight = 13;
 int derecha = 11;
 int izquierda = 12;
 
+/*Funcion de configuracion principal*/
 void setup() {
   /*Inicializacion del puerto Serial*/
   Serial.begin(9600);
@@ -59,11 +67,16 @@ void setup() {
   pinMode(ft, INPUT);
   pinMode(led, OUTPUT);
   
+  /*Configuracion de pines del sensor de proximidad*/
   pinMode(trig, OUTPUT);
   pinMode(echo, INPUT);
-  cabeceo.attach(5); // Adjunta "cabeceo" al pin 5
+
+  /*Configuracion de los pines de servos*/
+  //cabeceo.attach(5); // Adjunta "cabeceo" al pin 5
   alabeo.attach(9); // Adjunta "alabeo" al pin 9
   guinada.attach(10); // Adjunta "guinada" al pin 10
+
+  /*Configuracion de */
   pinMode(botonPin1, INPUT_PULLUP); // Configura el primer pin del pulsador con resistencia pull-up interna
   pinMode(botonPin2, INPUT_PULLUP); // Configura el segundo pin del pulsador con resistencia pull-up interna
 
@@ -75,7 +88,7 @@ void setup() {
   pinMode(derecha, INPUT);
   pinMode(izquierda, INPUT);
 
-  alabeo.write(angulo); // Establece el ángulo inicial del servo "alabeo" a 90 grados
+  //alabeo.write(angulo); // Establece el ángulo inicial del servo "alabeo" a 90 grados
 }
 
 /* Funcion que alterna pulsos de iluminacion en dos leds que simula las navlights
@@ -114,17 +127,20 @@ void loop() {
   Serial.println();
   delay(500);
 
-  /*Accion de respuesta: evasion en cabeceo*/
-  if (distancia <= 10) {
-    alabeo.write(15);
-    guinada.write(15);
-  }
+  /*Accion de respuesta: evasion en alabeo y guinada*/
+  //Genera una desviacion angular en ambos movimientos de motor en caso de colision. Adicionalmente genera un mensaje de consola
+  if (distancia <= 10 && distancia != 0) {
+    alabeo.write(110);
+    guinada.write(110);
+    Serial.println("Alarma: COLISION!!");
+  } //Si no hay colision, regresa a su estado de maniobra normal
   if (distancia > 10) {
-    alabeo.write(0);
-    guinada.write(0);
+    alabeo.write(angulo);
+    guinada.write(anguloGuinada);
   }
 
   /*Accion de respuesta: Iluminacion*/
+  //Genera una respuesta de accionamiento de LEDS en caso de no detectar luz suficiente. Simula condiciones nocturnas
   if (valorft <= 150) {
     digitalWrite(led, HIGH);
   } else {
@@ -135,9 +151,12 @@ void loop() {
   int estadoDerecha = digitalRead(derecha);
   int estadoIzquierda = digitalRead(izquierda);
 
+  //La condicion detecta si hay inclinacion. Excluye el mensaje de consola en caso de que el detector IZQUIERDA este activo
   if(estadoDerecha == HIGH && estadoIzquierda == LOW){
     Serial.println("Estado alabeo: Inclinado a la derecha");
   }
+
+  //Devuelve el estado de inclinacion si unicamente hay un sensor encendido y genera un mensaje de consola
   if(estadoIzquierda == HIGH && estadoDerecha == LOW){
     Serial.println("Estado alabeo: Inclinado a la izquierda");
   }
@@ -151,6 +170,7 @@ void loop() {
     angulo += paso; // Aumenta el ángulo en el paso definido
     alabeo.write(angulo); // Mueve "alabeo" al ángulo calculado
 
+    //Respuesta de Guinada
     anguloGuinada -= pasoGuinada;
     guinada.write(anguloGuinada);
 
@@ -163,6 +183,7 @@ void loop() {
     angulo -= paso; // Disminuye el ángulo en el paso definido
     alabeo.write(angulo); // Mueve "alabeo" al ángulo calculado
 
+    //Respuesta de Guinada
     anguloGuinada += pasoGuinada;
     guinada.write(anguloGuinada);
 
